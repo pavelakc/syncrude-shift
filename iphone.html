@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Syncrude">
+<meta name="theme-color" content="#0a0d13">
+<title>Syncrude Shift</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  :root {
+    --bg: #0a0d13;
+    --card: rgba(255,255,255,0.045);
+    --card2: rgba(255,255,255,0.08);
+    --card3: rgba(255,255,255,0.11);
+    --text: #ffffff;
+    --dim: rgba(255,255,255,0.55);
+    --dimmer: rgba(255,255,255,0.32);
+    --active: #4f9eff;
+    --divider: rgba(255,255,255,0.09);
+    --work: #fbbf24;
+    --off:  #34d399;
+  }
+
+  html, body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, 'Inter', 'Segoe UI', sans-serif;
+    font-weight: 500;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    padding: max(1.4rem, env(safe-area-inset-top)) 1.1rem calc(2rem + env(safe-area-inset-bottom));
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+  }
+
+  /* ============ HEADER ============ */
+  header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding-bottom: 0.9rem;
+    border-bottom: 1px solid var(--divider);
+  }
+  .brand { font-size: 0.75rem; font-weight: 800; letter-spacing: 0.2em; color: var(--dim); }
+  .brand .sub { display: block; color: var(--dimmer); letter-spacing: 0.1em; font-weight: 600; font-size: 0.62rem; margin-top: 0.15rem; }
+  .mini-clock { text-align: right; }
+  .mini-time { font-size: 1.2rem; font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; }
+  .mini-date { font-size: 0.68rem; color: var(--dimmer); font-weight: 600; }
+
+  /* ============ CARD BASE ============ */
+  .card {
+    background: var(--card);
+    border-radius: 1.1rem;
+    padding: 1.1rem 1.2rem;
+  }
+
+  /* ============ HERO: current shift ============ */
+  .hero {
+    display: grid;
+    grid-template-columns: 6px 1fr;
+    gap: 1rem;
+    padding: 1.3rem 1.2rem;
+  }
+  .colorbar { background: var(--active); border-radius: 4px; transition: background 0.4s ease; }
+  .hero-content { display: flex; flex-direction: column; gap: 1rem; }
+
+  .shift-name {
+    font-size: 2.9rem;
+    font-weight: 800;
+    line-height: 0.95;
+    color: var(--active);
+    letter-spacing: -0.02em;
+    transition: color 0.4s ease;
+  }
+  .shift-meta { font-size: 0.95rem; color: var(--dim); font-weight: 600; }
+
+  .shift-progress { display: flex; flex-direction: column; gap: 0.4rem; }
+  .prog-track {
+    width: 100%; height: 0.5rem;
+    background: rgba(255,255,255,0.08);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .prog-fill {
+    height: 100%; background: var(--active); border-radius: 4px;
+    transition: width 1s linear, background 0.4s ease;
+  }
+  .prog-text {
+    display: flex; justify-content: space-between;
+    font-size: 0.78rem; color: var(--dim); font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+  .prog-text .accent { color: var(--text); }
+
+  .pips { display: flex; align-items: center; gap: 0.4rem; }
+  .pip { width: 2rem; height: 0.4rem; background: rgba(255,255,255,0.1); border-radius: 3px; transition: background 0.4s ease; }
+  .pip.done { background: rgba(255,255,255,0.35); }
+  .pip.now  { background: var(--active); box-shadow: 0 0 10px var(--active); }
+  .day-label { margin-left: 0.5rem; font-size: 0.82rem; color: var(--dim); font-weight: 700; }
+
+  /* ============ BIG CLOCK ============ */
+  .clock-card { text-align: center; padding: 1.4rem 1rem; }
+  .bc-day { font-size: 0.8rem; color: var(--dim); text-transform: uppercase; letter-spacing: 0.2em; font-weight: 700; }
+  .bc-time {
+    font-size: 3.6rem; font-weight: 800; color: var(--text);
+    font-variant-numeric: tabular-nums; line-height: 1.05; letter-spacing: -0.03em;
+    margin: 0.2rem 0;
+  }
+  .bc-date { font-size: 0.85rem; color: var(--dim); font-weight: 600; }
+
+  /* ============ SKY CARD ============ */
+  .sky-strip { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem; text-align: center; }
+  .sky-item { display: flex; flex-direction: column; align-items: center; gap: 0.3rem; }
+  .sky-icon { font-size: 1.9rem; line-height: 1; }
+  .sky-value { font-size: 1.15rem; color: var(--text); font-weight: 800; font-variant-numeric: tabular-nums; }
+  .sky-label { font-size: 0.62rem; color: var(--dimmer); text-transform: uppercase; letter-spacing: 0.12em; font-weight: 700; }
+  .daylight {
+    display: flex; justify-content: center; align-items: center; gap: 0.4rem;
+    font-size: 0.88rem; color: var(--dim); font-weight: 600;
+    padding-top: 0.9rem; margin-top: 0.9rem; border-top: 1px solid var(--divider);
+  }
+  .daylight .val { color: var(--text); font-weight: 700; font-variant-numeric: tabular-nums; }
+
+  /* ============ WEATHER + HOLIDAY ============ */
+  .weather-row { display: flex; justify-content: center; align-items: center; gap: 1.5rem; font-size: 1rem; font-weight: 700; }
+  .weather-row .w-item { display: flex; align-items: center; gap: 0.35rem; }
+  .weather-row .w-icon { font-size: 1.3rem; }
+  .weather-row.offline { color: var(--dimmer); font-size: 0.78rem; font-weight: 600; }
+  .holiday-row {
+    margin-top: 0.8rem; padding: 0.6rem 0.9rem;
+    background: rgba(255,80,80,0.10); border: 1px solid rgba(255,80,80,0.25);
+    border-radius: 8px; color: #ff9a9a; font-size: 0.78rem; font-weight: 700;
+    letter-spacing: 0.03em; text-align: center;
+  }
+  .holiday-row.hidden { display: none; }
+
+  /* ============ PERSONAL ROTATION ============ */
+  .personal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
+  .personal-title { font-size: 0.68rem; color: var(--dimmer); text-transform: uppercase; letter-spacing: 0.15em; font-weight: 700; }
+  .personal-status { font-size: 0.95rem; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; }
+  .personal-status.working { color: var(--work); }
+  .personal-status.off     { color: var(--off); }
+  .personal-main { font-size: 1.35rem; font-weight: 800; margin-bottom: 0.6rem; }
+  .personal-track { width: 100%; height: 0.45rem; background: rgba(255,255,255,0.08); border-radius: 3px; overflow: hidden; }
+  .personal-fill { height: 100%; border-radius: 3px; transition: width 1s ease; }
+  .personal-fill.working { background: var(--work); }
+  .personal-fill.off     { background: var(--off); }
+  .personal-sub { font-size: 0.78rem; color: var(--dim); font-weight: 600; margin-top: 0.6rem; }
+
+  /* ============ NEXT SHIFT (big) ============ */
+  .next-shift {
+    display: flex; justify-content: space-between; align-items: center;
+    border-left: 5px solid transparent;
+    padding: 1.2rem 1.3rem;
+  }
+  .next-badge { font-size: 0.7rem; color: var(--dim); text-transform: uppercase; letter-spacing: 0.2em; font-weight: 700; margin-bottom: 0.4rem; }
+  .next-team { font-size: 1.7rem; font-weight: 800; line-height: 1.05; }
+  .next-when { font-size: 0.95rem; color: var(--text); font-weight: 700; text-align: right; white-space: nowrap; }
+  .next-type { font-size: 0.68rem; color: var(--dimmer); font-weight: 700; text-align: right; margin-top: 0.15rem; }
+
+  /* ============ UPCOMING STRIP (horizontal scroll) ============ */
+  .upcoming-scroll {
+    display: flex; gap: 0.6rem;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 0.1rem;
+  }
+  .upcoming-scroll::-webkit-scrollbar { display: none; }
+  .then-card {
+    background: var(--card2);
+    border-radius: 0.8rem;
+    padding: 0.7rem 0.9rem;
+    border-left: 4px solid transparent;
+    flex: 0 0 auto;
+    min-width: 7.6rem;
+  }
+  .then-badge { font-size: 0.6rem; color: var(--dimmer); text-transform: uppercase; letter-spacing: 0.15em; font-weight: 700; }
+  .then-team { font-size: 0.92rem; font-weight: 800; margin-top: 0.25rem; line-height: 1.15; }
+  .then-when { font-size: 0.68rem; color: var(--dim); font-weight: 600; margin-top: 0.35rem; }
+
+  .section-label {
+    font-size: 0.68rem; color: var(--dimmer); text-transform: uppercase;
+    letter-spacing: 0.2em; font-weight: 700; margin-bottom: 0.6rem; padding-left: 0.1rem;
+  }
+
+  /* ============ CALENDAR (7x2 grid) ============ */
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.45rem; }
+  .cal-cell {
+    background: rgba(255,255,255,0.035);
+    border: 1px solid transparent;
+    border-radius: 0.6rem;
+    padding: 0.55rem 0.2rem;
+    display: flex; flex-direction: column; align-items: center; gap: 0.25rem;
+    position: relative;
+  }
+  .cal-cell.today { border-color: rgba(255,255,255,0.45); background: rgba(255,255,255,0.07); }
+  .cal-cell.off { opacity: 0.5; }
+  .cal-dow { font-size: 0.58rem; color: var(--dim); letter-spacing: 0.08em; font-weight: 700; text-transform: uppercase; }
+  .cal-num { font-size: 1.15rem; font-weight: 800; line-height: 1; }
+  .cal-teams { display: flex; gap: 0.25rem; margin-top: 0.15rem; }
+  .cal-dot { width: 0.42rem; height: 0.42rem; border-radius: 50%; }
+  .cal-status { font-size: 0.5rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; margin-top: 0.1rem; }
+  .cal-status.work { color: var(--work); }
+  .cal-status.off  { color: var(--off); }
+
+  .footer-note {
+    text-align: center;
+    font-size: 0.65rem;
+    color: var(--dimmer);
+    font-weight: 600;
+    padding-top: 0.5rem;
+  }
+</style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">SYNCRUDE<span class="sub">MILDRED LAKE</span></div>
+    <div class="mini-clock">
+      <div class="mini-time" id="time">—</div>
+      <div class="mini-date" id="date">—</div>
+    </div>
+  </header>
+
+  <!-- CURRENT SHIFT -->
+  <div class="card hero">
+    <div class="colorbar" id="colorbar"></div>
+    <div class="hero-content">
+      <div>
+        <div class="shift-name" id="shiftName">—</div>
+        <div class="shift-meta" id="shiftMeta">—</div>
+      </div>
+      <div class="shift-progress">
+        <div class="prog-track"><div class="prog-fill" id="progFill" style="width:0%"></div></div>
+        <div class="prog-text">
+          <span><span class="accent" id="progInto">—</span> in</span>
+          <span><span class="accent" id="progLeft">—</span> left</span>
+        </div>
+      </div>
+      <div class="pips">
+        <div class="pip" id="pip0"></div>
+        <div class="pip" id="pip1"></div>
+        <div class="pip" id="pip2"></div>
+        <div class="day-label" id="dayLabel">—</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BIG CLOCK -->
+  <div class="card clock-card">
+    <div class="bc-day" id="bigDay">—</div>
+    <div class="bc-time" id="bigTime">00:00:00</div>
+    <div class="bc-date" id="bigDate">—</div>
+  </div>
+
+  <!-- SKY -->
+  <div class="card">
+    <div class="sky-strip">
+      <div class="sky-item"><div class="sky-icon">🌅</div><div class="sky-value" id="sunrise">—</div><div class="sky-label">Sunrise</div></div>
+      <div class="sky-item"><div class="sky-icon">🌇</div><div class="sky-value" id="sunset">—</div><div class="sky-label">Sunset</div></div>
+      <div class="sky-item"><div class="sky-icon" id="moonIcon">🌑</div><div class="sky-value" id="moonPct">—</div><div class="sky-label" id="moonName">Moon</div></div>
+    </div>
+    <div class="daylight"><span>☀️ Daylight left:</span><span class="val" id="daylight">—</span></div>
+  </div>
+
+  <!-- WEATHER + HOLIDAY -->
+  <div class="card">
+    <div class="weather-row offline" id="weatherRow"><span>Weather offline</span></div>
+    <div class="holiday-row hidden" id="holidayRow"></div>
+  </div>
+
+  <!-- PERSONAL ROTATION -->
+  <div class="card">
+    <div class="personal-header">
+      <div class="personal-title">My Rotation · 14 on / 14 off</div>
+      <div class="personal-status" id="pStatus">—</div>
+    </div>
+    <div class="personal-main" id="pMain">—</div>
+    <div class="personal-track"><div class="personal-fill" id="pFill" style="width:0%"></div></div>
+    <div class="personal-sub" id="pSub">—</div>
+  </div>
+
+  <!-- NEXT SHIFT -->
+  <div class="card next-shift" id="nextCard">
+    <div>
+      <div class="next-badge">NEXT SHIFT</div>
+      <div class="next-team" id="nextTeam">—</div>
+    </div>
+    <div>
+      <div class="next-when" id="nextWhen">—</div>
+      <div class="next-type" id="nextType">—</div>
+    </div>
+  </div>
+
+  <!-- UPCOMING STRIP -->
+  <div>
+    <div class="section-label">Coming Up</div>
+    <div class="upcoming-scroll" id="upcomingScroll"></div>
+  </div>
+
+  <!-- CALENDAR -->
+  <div>
+    <div class="section-label">Next 14 Days</div>
+    <div class="cal-grid" id="calGrid"></div>
+  </div>
+
+  <div class="footer-note">Updates every second · reloads hourly</div>
+
+<script>
+'use strict';
+
+// =========================================================
+//  CONFIG
+// =========================================================
+var SC = {
+  "501N":"#4f9eff","502N":"#ff6b4a","503N":"#2ecc71","504N":"#f0c040",
+  "501D":"#a78bfa","502D":"#fb7185","503D":"#34d399","504D":"#fbbf24"
+};
+var SL = {
+  "501N":"501 Nights","502N":"502 Nights","503N":"503 Nights","504N":"504 Nights",
+  "501D":"501 Days",  "502D":"502 Days",  "503D":"503 Days",  "504D":"504 Days"
+};
+
+var ANCHOR = new Date(2026, 2, 31); // Team cycle anchor — March 31, 2026
+
+// PERSONAL 14 on / 14 off — change this whenever your cycle resets
+var PERSONAL_ANCHOR = new Date(2026, 7, 25); // last day of a 14-day work stretch
+
+var CYCLE = [
+  {night:"501N", day:"502D"},
+  {night:"502N", day:"503D"},
+  {night:"503N", day:"504D"},
+  {night:"504N", day:"501D"}
+];
+
+var MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+var DAYS   = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+var DAYS_2 = ["SU","MO","TU","WE","TH","FR","SA"];
+var DAYS_LONG   = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+var MONTHS_LONG = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+
+var DAY_START = 6 * 60, NIGHT_START = 18 * 60;
+
+var LAT = 57.05, LON = -111.60; // Mildred Lake
+
+var HOLIDAYS = [
+  { d:"2026-01-01", name:"New Year's Day" },
+  { d:"2026-02-16", name:"Family Day" },
+  { d:"2026-04-03", name:"Good Friday" },
+  { d:"2026-05-18", name:"Victoria Day" },
+  { d:"2026-07-01", name:"Canada Day" },
+  { d:"2026-08-03", name:"Heritage Day" },
+  { d:"2026-09-07", name:"Labour Day" },
+  { d:"2026-10-12", name:"Thanksgiving" },
+  { d:"2026-11-11", name:"Remembrance Day" },
+  { d:"2026-12-25", name:"Christmas Day" },
+  { d:"2026-12-28", name:"Boxing Day (obs.)" },
+  { d:"2027-01-01", name:"New Year's Day" },
+  { d:"2027-02-15", name:"Family Day" },
+  { d:"2027-03-26", name:"Good Friday" },
+  { d:"2027-05-24", name:"Victoria Day" },
+  { d:"2027-07-01", name:"Canada Day" },
+  { d:"2027-08-02", name:"Heritage Day" }
+];
+
+// =========================================================
+//  UTILS
+// =========================================================
+function pad(n) { n = String(n); return n.length < 2 ? "0" + n : n; }
+function fmtT(d) { return pad(d.getHours()) + ":" + pad(d.getMinutes()); }
+function fmtDShort(d) { return MONTHS[d.getMonth()] + " " + d.getDate(); }
+function fmtDLong(d) { return DAYS[d.getDay()] + ", " + MONTHS[d.getMonth()] + " " + d.getDate(); }
+function fmtHMShort(minutes) {
+  var h = Math.floor(minutes/60), m = Math.floor(minutes%60);
+  if (h === 0) return m + "m";
+  return h + "h " + pad(m) + "m";
+}
+function startOfDay(d) { return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
+
+// =========================================================
+//  TEAM ROTATION
+// =========================================================
+function getBlockInfo(date) {
+  var d0 = startOfDay(date);
+  var diff = Math.round((d0 - ANCHOR) / 86400000);
+  var pos = ((diff % 12) + 12) % 12;
+  var blockIdx = Math.floor(pos / 3);
+  var dayInBlock = pos % 3;
+  var blockStart = new Date(d0);
+  blockStart.setDate(blockStart.getDate() - dayInBlock);
+  return {block:CYCLE[blockIdx], blockStart:blockStart, dayInBlock:dayInBlock};
+}
+
+function getShiftAt(dt) {
+  var mins = dt.getHours() * 60 + dt.getMinutes();
+  var shiftDate, type, startTime, endTime;
+  if (mins >= DAY_START && mins < NIGHT_START) {
+    type = "day";
+    shiftDate = new Date(dt.getFullYear(), dt.getMonth(), dt.getDate());
+    startTime = new Date(shiftDate); startTime.setHours(6,0,0,0);
+    endTime   = new Date(shiftDate); endTime.setHours(18,0,0,0);
+  } else if (mins >= NIGHT_START) {
+    type = "night";
+    shiftDate = new Date(dt.getFullYear(), dt.getMonth(), dt.getDate());
+    startTime = new Date(shiftDate); startTime.setHours(18,0,0,0);
+    endTime   = new Date(shiftDate); endTime.setDate(endTime.getDate()+1); endTime.setHours(6,0,0,0);
+  } else {
+    type = "night";
+    shiftDate = new Date(dt.getFullYear(), dt.getMonth(), dt.getDate()-1);
+    startTime = new Date(shiftDate); startTime.setHours(18,0,0,0);
+    endTime   = new Date(dt.getFullYear(), dt.getMonth(), dt.getDate()); endTime.setHours(6,0,0,0);
+  }
+  var info = getBlockInfo(shiftDate);
+  var teamKey = type === "night" ? info.block.night : info.block.day;
+  return { type: type, teamKey: teamKey, startTime: startTime, endTime: endTime, info: info };
+}
+
+function getUpcomingShifts(now, count) {
+  var out = [];
+  var current = getShiftAt(now);
+  var probe = new Date(current.endTime.getTime() + 60000);
+  for (var i = 0; i < count; i++) {
+    var s = getShiftAt(probe);
+    out.push(s);
+    probe = new Date(s.endTime.getTime() + 60000);
+  }
+  return { current: current, upcoming: out };
+}
+
+// =========================================================
+//  PERSONAL ROTATION (14 on / 14 off)
+// =========================================================
+function getPersonalRotation(date) {
+  var d0 = startOfDay(date);
+  var daysSince = Math.round((d0 - PERSONAL_ANCHOR) / 86400000);
+  var offset = daysSince + 13;
+  var pos = ((offset % 28) + 28) % 28;
+  if (pos < 14) {
+    var dayNum = pos + 1;
+    var daysLeft = 14 - dayNum;
+    var nextChange = new Date(d0); nextChange.setDate(nextChange.getDate() + daysLeft + 1);
+    return { status:"work", dayNum:dayNum, daysLeft:daysLeft, nextChange:nextChange, progress:dayNum/14 };
+  } else {
+    var offNum = pos - 13;
+    var daysLeftOff = 14 - offNum;
+    var backDate = new Date(d0); backDate.setDate(backDate.getDate() + daysLeftOff + 1);
+    return { status:"off", dayNum:offNum, daysLeft:daysLeftOff, nextChange:backDate, progress:offNum/14 };
+  }
+}
+
+// =========================================================
+//  ASTRONOMY
+// =========================================================
+function getSunTimes(date, lat, lon) {
+  var rad = Math.PI / 180;
+  var jan1 = new Date(date.getFullYear(), 0, 1);
+  var dayOfYear = Math.floor((date - jan1) / 86400000) + 1;
+  var fY = 2 * Math.PI / 365 * (dayOfYear - 1);
+  var eqTime = 229.18 * (
+    0.000075 + 0.001868*Math.cos(fY) - 0.032077*Math.sin(fY)
+    - 0.014615*Math.cos(2*fY) - 0.040849*Math.sin(2*fY)
+  );
+  var decl = 0.006918
+    - 0.399912*Math.cos(fY) + 0.070257*Math.sin(fY)
+    - 0.006758*Math.cos(2*fY) + 0.000907*Math.sin(2*fY)
+    - 0.002697*Math.cos(3*fY) + 0.00148*Math.sin(3*fY);
+  var zenith = 90.833 * rad;
+  var latRad = lat * rad;
+  var cosH = (Math.cos(zenith) - Math.sin(latRad)*Math.sin(decl)) / (Math.cos(latRad)*Math.cos(decl));
+  if (cosH > 1 || cosH < -1) return { sunrise: null, sunset: null };
+  var haDeg = Math.acos(cosH) / rad;
+  var sunriseUTC = 720 - 4*(lon + haDeg) - eqTime;
+  var sunsetUTC  = 720 - 4*(lon - haDeg) - eqTime;
+  var tzOffset = -date.getTimezoneOffset();
+  function toDate(minsLocal) {
+    var d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    d.setMinutes(minsLocal);
+    return d;
+  }
+  return { sunrise: toDate(sunriseUTC + tzOffset), sunset: toDate(sunsetUTC + tzOffset) };
+}
+
+function getMoonPhase(date) {
+  var jd = date.getTime() / 86400000 + 2440587.5;
+  var phase = ((jd - 2451549.259722) / 29.53058867) % 1;
+  if (phase < 0) phase += 1;
+  var illum = (1 - Math.cos(2 * Math.PI * phase)) / 2;
+  var icon, name;
+  if      (phase < 0.03 || phase > 0.97) { icon = "🌑"; name = "New Moon"; }
+  else if (phase < 0.22)                 { icon = "🌒"; name = "Waxing Cres."; }
+  else if (phase < 0.28)                 { icon = "🌓"; name = "First Qtr"; }
+  else if (phase < 0.47)                 { icon = "🌔"; name = "Waxing Gib."; }
+  else if (phase < 0.53)                 { icon = "🌕"; name = "Full Moon"; }
+  else if (phase < 0.72)                 { icon = "🌖"; name = "Waning Gib."; }
+  else if (phase < 0.78)                 { icon = "🌗"; name = "Last Qtr"; }
+  else                                   { icon = "🌘"; name = "Waning Cres."; }
+  return { phase: phase, illumination: illum, icon: icon, name: name };
+}
+
+// =========================================================
+//  HOLIDAYS
+// =========================================================
+function fmtIsoDate(d) { return d.getFullYear() + "-" + pad(d.getMonth()+1) + "-" + pad(d.getDate()); }
+function findHoliday(now) {
+  var todayStr = fmtIsoDate(now);
+  var todayMs = startOfDay(now).getTime();
+  for (var i = 0; i < HOLIDAYS.length; i++) {
+    var h = HOLIDAYS[i];
+    if (h.d === todayStr) return { name: h.name, when: "today" };
+    var parts = h.d.split("-");
+    var hDate = new Date(+parts[0], +parts[1]-1, +parts[2]);
+    var diff = Math.round((hDate - todayMs) / 86400000);
+    if (diff > 0 && diff <= 7) return { name: h.name, when: "in " + diff + " day" + (diff > 1 ? "s" : "") };
+  }
+  return null;
+}
+
+// =========================================================
+//  WEATHER (updates every 5 min)
+// =========================================================
+var lastWeatherFetch = 0, currentWeather = null;
+function fetchWeather() {
+  var now = Date.now();
+  if (now - lastWeatherFetch < 5 * 60 * 1000) return;
+  lastWeatherFetch = now;
+  var url = "https://api.open-meteo.com/v1/forecast?latitude=" + LAT + "&longitude=" + LON +
+            "&current=temperature_2m,wind_speed_10m,weather_code&timezone=auto";
+  fetch(url).then(function(r) {
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    return r.json();
+  }).then(function(d) {
+    currentWeather = {
+      temp: Math.round(d.current.temperature_2m),
+      wind: Math.round(d.current.wind_speed_10m),
+      code: d.current.weather_code
+    };
+    renderWeather();
+  }).catch(function() { currentWeather = null; renderWeather(); });
+}
+function weatherIcon(code) {
+  if (code === 0) return "☀️";
+  if (code <= 3)  return "⛅";
+  if (code <= 48) return "🌫️";
+  if (code <= 67) return "🌧️";
+  if (code <= 77) return "🌨️";
+  if (code <= 82) return "🌧️";
+  if (code <= 86) return "🌨️";
+  if (code <= 99) return "⛈️";
+  return "🌡️";
+}
+function renderWeather() {
+  var el = $('weatherRow');
+  if (!currentWeather) {
+    el.className = 'weather-row offline';
+    el.innerHTML = '<span>Weather offline · no network</span>';
+    return;
+  }
+  el.className = 'weather-row';
+  el.innerHTML =
+    '<span class="w-item"><span class="w-icon">' + weatherIcon(currentWeather.code) + '</span><span>' + currentWeather.temp + '°C</span></span>' +
+    '<span class="w-item"><span class="w-icon">💨</span><span>' + currentWeather.wind + ' km/h</span></span>';
+}
+
+// =========================================================
+//  CALENDAR (14 days, 7x2)
+// =========================================================
+function renderCalendar(now) {
+  var grid = $('calGrid');
+  var html = '';
+  var todayMs = startOfDay(now).getTime();
+  for (var i = 0; i < 14; i++) {
+    var d = new Date(now); d.setDate(d.getDate() + i);
+    var day = startOfDay(d);
+    var info = getBlockInfo(day);
+    var pers = getPersonalRotation(day);
+    var isToday = day.getTime() === todayMs;
+    var dayColor = SC[info.block.day];
+    var nightColor = SC[info.block.night];
+    html += '<div class="cal-cell' + (isToday ? ' today' : '') + (pers.status === 'off' ? ' off' : '') + '">' +
+      '<div class="cal-dow">' + DAYS_2[day.getDay()] + '</div>' +
+      '<div class="cal-num">' + day.getDate() + '</div>' +
+      '<div class="cal-teams">' +
+        '<div class="cal-dot" style="background:' + dayColor + '"></div>' +
+        '<div class="cal-dot" style="background:' + nightColor + '"></div>' +
+      '</div>' +
+      '<div class="cal-status ' + (pers.status === 'work' ? 'work' : 'off') + '">' + (pers.status === 'work' ? 'WORK' : 'OFF') + '</div>' +
+    '</div>';
+  }
+  grid.innerHTML = html;
+}
+
+// =========================================================
+//  FORMATTERS FOR SHIFT CARDS
+// =========================================================
+function fmtWhen(startTime, now) {
+  var today = startOfDay(now);
+  var startDay = startOfDay(startTime);
+  var dayDiff = Math.round((startDay - today) / 86400000);
+  var label;
+  if (dayDiff === 0) label = "Today";
+  else if (dayDiff === 1) label = "Tmrw";
+  else label = DAYS[startTime.getDay()];
+  return label + " " + fmtT(startTime);
+}
+
+// =========================================================
+//  MAIN RENDER
+// =========================================================
+function $(id) { return document.getElementById(id); }
+
+function render() {
+  var now = new Date();
+  var result = getUpcomingShifts(now, 4);
+  var cur = result.current;
+  var next = result.upcoming[0];
+
+  var color = SC[cur.teamKey];
+  var isNight = cur.type === "night";
+  var range = isNight ? "18:00 – 06:00" : "06:00 – 18:00";
+  var typeLbl = isNight ? "Night Shift" : "Day Shift";
+
+  document.documentElement.style.setProperty('--active', color);
+
+  $('date').textContent = fmtDLong(now);
+  $('time').textContent = fmtT(now);
+
+  $('shiftName').textContent = SL[cur.teamKey];
+  $('shiftMeta').textContent = typeLbl + '  ·  ' + range;
+  $('dayLabel').textContent = 'Day ' + (cur.info.dayInBlock + 1) + ' of 3';
+
+  for (var i = 0; i < 3; i++) {
+    $('pip' + i).className = 'pip' + (i === cur.info.dayInBlock ? ' now' : (i < cur.info.dayInBlock ? ' done' : ''));
+  }
+
+  var totalShiftMs = cur.endTime - cur.startTime;
+  var intoMs = Math.max(0, now - cur.startTime);
+  var leftMs = Math.max(0, cur.endTime - now);
+  var progPct = Math.min(100, Math.max(0, (intoMs / totalShiftMs) * 100));
+  $('progFill').style.width = progPct + '%';
+  $('progInto').textContent = fmtHMShort(intoMs / 60000);
+  $('progLeft').textContent = fmtHMShort(leftMs / 60000);
+
+  $('bigDay').textContent = DAYS_LONG[now.getDay()];
+  $('bigTime').textContent = pad(now.getHours()) + ':' + pad(now.getMinutes()) + ':' + pad(now.getSeconds());
+  $('bigDate').textContent = MONTHS_LONG[now.getMonth()] + ' ' + now.getDate() + ', ' + now.getFullYear();
+
+  var sun = getSunTimes(now, LAT, LON);
+  $('sunrise').textContent = sun.sunrise ? fmtT(sun.sunrise) : "—";
+  $('sunset').textContent  = sun.sunset  ? fmtT(sun.sunset)  : "—";
+  var moon = getMoonPhase(now);
+  $('moonIcon').textContent = moon.icon;
+  $('moonPct').textContent = Math.round(moon.illumination * 100) + "%";
+  $('moonName').textContent = moon.name;
+
+  var dl = "—";
+  if (sun.sunset && sun.sunrise) {
+    if (now < sun.sunrise) dl = "rise in " + fmtHMShort((sun.sunrise - now)/60000);
+    else if (now < sun.sunset) dl = fmtHMShort((sun.sunset - now)/60000);
+    else {
+      var tomorrow = new Date(now); tomorrow.setDate(tomorrow.getDate()+1);
+      var srT = getSunTimes(tomorrow, LAT, LON);
+      dl = srT.sunrise ? "rise in " + fmtHMShort((srT.sunrise - now)/60000) : "—";
+    }
+  }
+  $('daylight').textContent = dl;
+
+  var hol = findHoliday(now);
+  var holEl = $('holidayRow');
+  if (hol) { holEl.classList.remove('hidden'); holEl.innerHTML = "🍁 " + hol.name.toUpperCase() + " · " + hol.when.toUpperCase(); }
+  else holEl.classList.add('hidden');
+
+  var pers = getPersonalRotation(now);
+  var pStatus = $('pStatus'), pFill = $('pFill');
+  if (pers.status === 'work') {
+    pStatus.className = 'personal-status working'; pStatus.textContent = 'WORKING';
+    pFill.className = 'personal-fill working';
+    $('pMain').textContent = 'Day ' + pers.dayNum + ' of 14';
+    $('pSub').textContent = pers.daysLeft === 0
+      ? 'Last work day · 14 days off start tomorrow'
+      : pers.daysLeft + ' more work day' + (pers.daysLeft > 1 ? 's' : '') + ' · off starts ' + fmtDShort(pers.nextChange);
+  } else {
+    pStatus.className = 'personal-status off'; pStatus.textContent = 'OFF';
+    pFill.className = 'personal-fill off';
+    $('pMain').textContent = 'Day ' + pers.dayNum + ' of 14 off';
+    $('pSub').textContent = pers.daysLeft === 0
+      ? 'Last day off · back to work tomorrow'
+      : pers.daysLeft + ' more day' + (pers.daysLeft > 1 ? 's' : '') + ' off · back on ' + fmtDShort(pers.nextChange);
+  }
+  pFill.style.width = (pers.progress * 100) + '%';
+
+  // Next shift card
+  var nColor = SC[next.teamKey];
+  $('nextCard').style.borderLeftColor = nColor;
+  $('nextTeam').textContent = SL[next.teamKey];
+  $('nextTeam').style.color = nColor;
+  $('nextWhen').textContent = fmtWhen(next.startTime, now);
+  $('nextType').textContent = (next.type === 'day' ? 'DAY' : 'NIGHT') + ' SHIFT';
+
+  // Upcoming scroll strip (skip index 0, already shown as "next")
+  var strip = '';
+  for (var j = 1; j < result.upcoming.length; j++) {
+    var s = result.upcoming[j];
+    var c = SC[s.teamKey];
+    strip += '<div class="then-card" style="border-left-color:' + c + '">' +
+      '<div class="then-badge">' + (s.type === 'day' ? 'DAY' : 'NIGHT') + '</div>' +
+      '<div class="then-team" style="color:' + c + '">' + SL[s.teamKey] + '</div>' +
+      '<div class="then-when">' + fmtWhen(s.startTime, now) + '</div>' +
+    '</div>';
+  }
+  $('upcomingScroll').innerHTML = strip;
+
+  if (now.getSeconds() < 2 || !window._calDone) {
+    renderCalendar(now);
+    window._calDone = true;
+  }
+}
+
+render();
+renderWeather();
+fetchWeather();
+setInterval(render, 1000);
+setInterval(fetchWeather, 5 * 60 * 1000);
+setTimeout(function() { location.reload(); }, 60 * 60 * 1000);
+
+if ('wakeLock' in navigator) navigator.wakeLock.request('screen').catch(function(){});
+</script>
+</body>
+</html>
