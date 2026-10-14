@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="FS Lookup">
+<meta name="theme-color" content="#f3f4f6" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0b0e13" media="(prefers-color-scheme: dark)">
+<link rel="apple-touch-icon" href="data:image/png;base64,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">
+<title>FS Unit Lookup</title>
+<style>
+  :root {
+    --bg: #f3f4f6;
+    --surface: #ffffff;
+    --ink: #14181f;
+    --ink2: #444d5b;
+    --ink3: #5b6472;
+    --line: #d5d9e0;
+    --ring: rgba(20, 24, 31, 0.18);
+    --mark: #ffe27a;
+
+    --ir: #1d4ed8;     --ir-bg: #e0e8ff;
+    --qir: #9a3f06;    --qir-bg: #ffe9d2;
+    --none: #a31717;   --none-bg: #fde0e0;
+    --na: #444d5b;     --na-bg: #e6e8ec;
+
+    --note-bg: #fff4d6; --note-ink: #5e4200;
+    --warn-bg: #fde0e0; --warn-ink: #6e1010;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0b0e13;
+      --surface: #151a22;
+      --ink: #f2f4f7;
+      --ink2: #b9c1cd;
+      --ink3: #98a2b1;
+      --line: #2a313c;
+      --ring: rgba(242, 244, 247, 0.28);
+      --mark: #6b5a10;
+
+      --ir: #a9c2ff;   --ir-bg: #1b2a58;
+      --qir: #ffc48a;  --qir-bg: #3d2309;
+      --none: #ffb0b0; --none-bg: #401313;
+      --na: #b9c1cd;   --na-bg: #262d38;
+
+      --note-bg: #3a2f0c; --note-ink: #ffe29a;
+      --warn-bg: #401313; --warn-ink: #ffc2c2;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0b0e13;
+    --surface: #151a22;
+    --ink: #f2f4f7;
+    --ink2: #b9c1cd;
+    --ink3: #98a2b1;
+    --line: #2a313c;
+    --ring: rgba(242, 244, 247, 0.28);
+    --mark: #6b5a10;
+
+    --ir: #a9c2ff;   --ir-bg: #1b2a58;
+    --qir: #ffc48a;  --qir-bg: #3d2309;
+    --none: #ffb0b0; --none-bg: #401313;
+    --na: #b9c1cd;   --na-bg: #262d38;
+
+    --note-bg: #3a2f0c; --note-ink: #ffe29a;
+    --warn-bg: #401313; --warn-ink: #ffc2c2;
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font: 16px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+
+  .fs-wrap { max-width: 560px; margin: 0 auto; padding: 0 16px calc(40px + env(safe-area-inset-bottom)); }
+
+  /* ---------- sticky search header ---------- */
+  .fs-top {
+    position: sticky; top: 0; z-index: 5;
+    background: var(--bg);
+    padding: calc(env(safe-area-inset-top) + 14px) 0 12px;
+  }
+  .fs-title {
+    display: flex; justify-content: space-between; align-items: baseline;
+    margin: 0 0 10px;
+    font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--ink3);
+  }
+  .fs-search { position: relative; }
+  .fs-search input {
+    width: 100%; height: 60px;
+    padding: 0 56px 0 18px;
+    font: inherit; font-size: 22px; font-weight: 700; letter-spacing: 0.01em;
+    color: var(--ink); background: var(--surface);
+    border: 2px solid var(--line); border-radius: 16px;
+    outline: none;
+    -webkit-appearance: none; appearance: none;
+  }
+  .fs-search input::placeholder { color: var(--ink3); font-weight: 500; }
+  .fs-search input:focus-visible { border-color: var(--ink); box-shadow: 0 0 0 4px var(--ring); }
+  .fs-search input::-webkit-search-cancel-button { display: none; }
+  .fs-clear {
+    position: absolute; right: 4px; top: 50%; transform: translateY(-50%);
+    width: 52px; height: 52px;
+    display: none; align-items: center; justify-content: center;
+    background: none; border: 0; border-radius: 12px;
+    color: var(--ink2); font-size: 22px; cursor: pointer;
+  }
+  .fs-clear.on { display: flex; }
+  .fs-clear:focus-visible { outline: 3px solid var(--ring); }
+
+  /* ---------- status line ---------- */
+  .fs-count { margin: 4px 2px 10px; font-size: 14px; font-weight: 600; color: var(--ink3); min-height: 20px; }
+
+  /* ---------- empty / hint state ---------- */
+  .fs-hint { padding: 6px 2px 0; }
+  .fs-hint p { margin: 0 0 14px; color: var(--ink2); font-size: 17px; }
+  .fs-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 22px; padding: 0; list-style: none; }
+  .fs-chip {
+    min-height: 44px; padding: 0 16px;
+    font: inherit; font-size: 17px; font-weight: 700; font-variant-numeric: tabular-nums;
+    color: var(--ink); background: var(--surface);
+    border: 1.5px solid var(--line); border-radius: 999px; cursor: pointer;
+  }
+  .fs-chip:active { background: var(--line); }
+  .fs-chip:focus-visible { outline: 3px solid var(--ring); outline-offset: 1px; }
+  .fs-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 0; padding: 0; }
+  .fs-stat { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; }
+  .fs-stat dt { font-size: 13px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink3); }
+  .fs-stat dd { margin: 2px 0 0; font-size: 28px; font-weight: 800; font-variant-numeric: tabular-nums; }
+
+  /* ---------- result card ---------- */
+  .fs-card {
+    background: var(--surface);
+    border: 1px solid var(--line); border-radius: 18px;
+    padding: 16px; margin: 0 0 12px;
+  }
+  .fs-row1 { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+  .fs-unit {
+    margin: 0;
+    font-size: 32px; font-weight: 800; line-height: 1.05; letter-spacing: -0.01em;
+    font-variant-numeric: tabular-nums;
+  }
+  .fs-alias { margin-left: 2px; font-size: 17px; font-weight: 700; color: var(--ink2); letter-spacing: 0; }
+  .fs-meta { margin: 6px 0 0; font-size: 16px; color: var(--ink2); }
+  .fs-meta b { color: var(--ink); font-weight: 700; }
+
+  .fs-badge { flex: none; min-width: 96px; padding: 8px 12px 9px; border-radius: 14px; text-align: center; }
+  .fs-badge .cap { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; opacity: 0.85; }
+  .fs-badge .big { margin-top: 2px; font-size: 26px; font-weight: 800; line-height: 1.05; letter-spacing: -0.01em; }
+  .fs-badge .sub { margin-top: 2px; font-size: 14px; font-weight: 700; }
+  .fs-badge.ir   { color: var(--ir);   background: var(--ir-bg); }
+  .fs-badge.qir  { color: var(--qir);  background: var(--qir-bg); }
+  .fs-badge.none { color: var(--none); background: var(--none-bg); }
+  .fs-badge.na   { color: var(--na);   background: var(--na-bg); }
+
+  .fs-kv { display: flex; gap: 8px; margin: 12px 0 0; font-size: 16px; }
+  .fs-kv span { color: var(--ink3); }
+  .fs-kv b { font-weight: 800; }
+
+  .fs-note { margin: 12px 0 0; padding: 10px 12px; border-radius: 12px; font-size: 15px; font-weight: 700; background: var(--note-bg); color: var(--note-ink); }
+  .fs-note.warn { background: var(--warn-bg); color: var(--warn-ink); }
+
+  mark { background: var(--mark); color: inherit; border-radius: 4px; padding: 0 1px; }
+
+  .fs-more {
+    width: 100%; min-height: 52px; margin: 2px 0 12px;
+    font: inherit; font-size: 17px; font-weight: 700; color: var(--ink);
+    background: var(--surface); border: 1.5px solid var(--line); border-radius: 14px; cursor: pointer;
+  }
+  .fs-more:focus-visible { outline: 3px solid var(--ring); }
+
+  .fs-empty { padding: 18px 4px; font-size: 17px; color: var(--ink2); }
+  .fs-empty b { color: var(--ink); }
+
+  .fs-foot { margin: 22px 2px 0; font-size: 13px; color: var(--ink3); }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .fs-chip, .fs-more { transition: background 0.12s; }
+  }
+</style>
+</head>
+<body>
+<div class="fs-wrap" id="fs-root">
+
+  <header class="fs-top">
+    <p class="fs-title"><span>Fire suppression · unit lookup</span><span id="fs-total"></span></p>
+    <div class="fs-search">
+      <input id="fs-q" type="search" inputmode="search" enterkeyhint="search"
+             placeholder="Unit, serial or model"
+             aria-label="Search by unit number, serial number or model"
+             autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+      <button class="fs-clear" id="fs-clear" type="button" aria-label="Clear search">✕</button>
+    </div>
+  </header>
+
+  <div class="fs-count" id="fs-count" role="status" aria-live="polite"></div>
+  <main id="fs-out"></main>
+
+  <p class="fs-foot">Source: ML_Trucks_FS_info.xlsx · works offline</p>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ------------------------------------------------------------------
+     DATA — generated from ML_Trucks_FS_info.xlsx
+     det: "IR" | "QIR" | "NONE" | ""  ("" = not listed in the sheet, 793 fleet)
+     cnt: number of detectors from the "YES n" cell
+     To update: replace this array, nothing else needs to change.
+  ------------------------------------------------------------------ */
+  var UNITS = [{"fleet":"793 Fleet B / D","unit":"17-061","alias":"","serial":"1HL00026","model":"793B Water Truck","panel":"SCN","det":"","cnt":null,"note":""},{"fleet":"793 Fleet B / D","unit":"17-065","alias":"","serial":"1HL00102","model":"793B Water Truck","panel":"SCN","det":"","cnt":null,"note":""},{"fleet":"793 Fleet B / D","unit":"17-070","alias":"","serial":"1HL00115","model":"793B Tow Haul","panel":"SCN","det":"","cnt":null,"note":""},{"fleet":"793 Fleet B / D","unit":"17-170","alias":"","serial":"FDB01329","model":"793D","panel":"SCN","det":"","cnt":null,"note":""},{"fleet":"793 Fleet B / D","unit":"17-171","alias":"","serial":"FDB01331","model":"793D","panel":"SCN","det":"","cnt":null,"note":""},{"fleet":"793 Fleet B / D","unit":"17-172","alias":"","serial":"FDB01334","model":"793D","panel":"SCN","det":"","cnt":null,"note":""},{"fleet":"793 Fleet B / D","unit":"17-173","alias":"","serial":"FDB01339","model":"793D","panel":"SCN","det":"","cnt":null,"note":""},{"fleet":"797 B Fleet","unit":"17-112","alias":"","serial":"JSM00217","model":"797B","panel":"SCN","det":"IR","cnt":2,"note":""},{"fleet":"797 B Fleet","unit":"17-113","alias":"","serial":"JSM00219","model":"797B","panel":"SCN","det":"IR","cnt":2,"note":""},{"fleet":"797 B Fleet","unit":"17-114","alias":"","serial":"JSM00389","model":"797B","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"797 B Fleet","unit":"17-115","alias":"","serial":"JSM00400","model":"797B","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"797 B Fleet","unit":"17-116","alias":"","serial":"JSM00401","model":"797B","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"797 B Fleet","unit":"17-117","alias":"","serial":"JSM00402","model":"797B","panel":"SCN","det":"IR","cnt":2,"note":""},{"fleet":"797 B Fleet","unit":"17-118","alias":"","serial":"JSM00407","model":"797B","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"797 B Fleet","unit":"17-119","alias":"","serial":"JSM00412","model":"797B","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"797 B Fleet","unit":"17-120","alias":"","serial":"JSM00413","model":"797B","panel":"SCN","det":"IR","cnt":2,"note":""},{"fleet":"797 B Fleet","unit":"17-121","alias":"","serial":"JSM00434","model":"797B","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"797 B Fleet","unit":"17-122","alias":"","serial":"JSM00435","model":"797B","panel":"SCN","det":"IR","cnt":2,"note":""},{"fleet":"797 B Fleet","unit":"17-123","alias":"","serial":"JSM00395","model":"797B","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"797 B Fleet","unit":"17-124","alias":"","serial":"JSM00398","model":"797B","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"797 B Fleet","unit":"17-125","alias":"","serial":"JSM00399","model":"797B","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"797 B Fleet","unit":"17-126","alias":"","serial":"JSM00222","model":"797B","panel":"SCN","det":"IR","cnt":2,"note":""},{"fleet":"797 B Fleet","unit":"17-127","alias":"","serial":"JSM00223","model":"797B","panel":"SCN","det":"IR","cnt":2,"note":""},{"fleet":"797 B Fleet","unit":"17-157","alias":"","serial":"JSM00236","model":"797B from Suncor","panel":"SCN","det":"NONE","cnt":null,"note":"No Extd. Discharge or Under Cab Nozzle or cameras"},{"fleet":"797 B Fleet","unit":"17-158","alias":"","serial":"JSM00237","model":"797B from Suncor","panel":"SCN","det":"NONE","cnt":null,"note":"No Extd. Discharge or Under Cab Nozzle or cameras"},{"fleet":"797 B Fleet","unit":"17-159","alias":"","serial":"JSM00238","model":"797B from Suncor","panel":"SCN","det":"NONE","cnt":null,"note":"No Extd. Discharge or Under Cab Nozzle or cameras"},{"fleet":"797 B Fleet","unit":"017-160","alias":"","serial":"JSM00450","model":"797B","panel":"210","det":"QIR","cnt":2,"note":""},{"fleet":"797 B Fleet","unit":"017-161","alias":"","serial":"JSM00451","model":"797B","panel":"210","det":"QIR","cnt":2,"note":""},{"fleet":"797 B Fleet","unit":"017-162","alias":"","serial":"JSM00453","model":"797B","panel":"210","det":"QIR","cnt":2,"note":""},{"fleet":"797 B Fleet","unit":"017-163","alias":"","serial":"JSM00472","model":"797B","panel":"210","det":"QIR","cnt":2,"note":""},{"fleet":"797 B Fleet","unit":"017-164","alias":"","serial":"JSM00476","model":"797B","panel":"210","det":"QIR","cnt":2,"note":""},{"fleet":"797 B Fleet","unit":"017-546","alias":"","serial":"JSM00377","model":"797B","panel":"SCN","det":"IR","cnt":2,"note":""},{"fleet":"797 B Fleet","unit":"017-547","alias":"","serial":"JSM00375","model":"797B","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"797 B Fleet","unit":"017-548","alias":"","serial":"JSM00376","model":"797B","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"797 B Fleet","unit":"017-551","alias":"","serial":"JSM00382","model":"797B","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-204","alias":"","serial":"LTZ00179","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-205","alias":"","serial":"LTZ00180","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-206","alias":"","serial":"LTZ00181","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-207","alias":"","serial":"LTZ00182","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-208","alias":"","serial":"LTZ00183","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-209","alias":"","serial":"LTZ00184","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-210","alias":"","serial":"LTZ00185","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-211","alias":"","serial":"LTZ00186","model":"797F","panel":"210","det":"IR","cnt":2,"note":"Autonomous Tie-in"},{"fleet":"CAT 797 F Fleet","unit":"017-212","alias":"","serial":"LTZ00187","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-213","alias":"","serial":"LTZ00188","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-214","alias":"","serial":"LTZ00189","model":"797F","panel":"210","det":"QIR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-215","alias":"","serial":"LTZ00190","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-216","alias":"","serial":"LTZ00191","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-217","alias":"","serial":"LTZ00192","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-218","alias":"","serial":"LTZ00193","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-219","alias":"","serial":"LTZ00194","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-220","alias":"","serial":"LTZ00195","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-221","alias":"","serial":"LTZ00196","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-222","alias":"","serial":"LTZ00201","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-223","alias":"","serial":"LTZ00202","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"17-224","alias":"C7","serial":"LTZ00203","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"17-225","alias":"C8","serial":"LTZ00204","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-226","alias":"","serial":"LTZ00225","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-227","alias":"","serial":"LTZ00226","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-228","alias":"","serial":"LTZ00244","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-229","alias":"","serial":"LTZ00245","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-230","alias":"","serial":"LTZ00246","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-231","alias":"","serial":"LTZ00247","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-232","alias":"","serial":"LTZ00249","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-233","alias":"","serial":"LTZ00250","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-234","alias":"","serial":"LTZ00251","model":"797F","panel":"210","det":"IR","cnt":2,"note":"Autonomous Tie-in"},{"fleet":"CAT 797 F Fleet","unit":"017-235","alias":"","serial":"LTZ00252","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-236","alias":"","serial":"LTZ00253","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-237","alias":"","serial":"LTZ00254","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-238","alias":"","serial":"LTZ00255","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-239","alias":"","serial":"LTZ00256","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-240","alias":"","serial":"LTZ00257","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-241","alias":"","serial":"LTZ00258","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-242","alias":"","serial":"LTZ00259","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-243","alias":"","serial":"LTZ00260","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-244","alias":"","serial":"LTZ00261","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-245","alias":"","serial":"LTZ00262","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-246","alias":"","serial":"LTZ00270","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-247","alias":"","serial":"LTZ00280","model":"797F","panel":"210","det":"QIR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-248","alias":"","serial":"LTZ00376","model":"797F","panel":"210","det":"QIR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-249","alias":"","serial":"LTZ00282","model":"797F","panel":"210","det":"QIR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-250","alias":"","serial":"LTZ00284","model":"797F","panel":"210","det":"QIR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-251","alias":"","serial":"LTZ00285","model":"797F","panel":"210","det":"QIR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-252","alias":"","serial":"LTZ00286","model":"797F","panel":"210","det":"QIR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-253","alias":"","serial":"LTZ00288","model":"797F","panel":"210","det":"QIR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-254","alias":"","serial":"LTZ00289","model":"797F","panel":"210","det":"QIR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-255","alias":"","serial":"LTZ00292","model":"797F","panel":"210","det":"QIR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-256","alias":"","serial":"LTZ00294","model":"797F","panel":"210","det":"QIR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-257","alias":"","serial":"LTZ00295","model":"797F","panel":"210","det":"QIR","cnt":2,"note":"Autonomous Tie-in"},{"fleet":"CAT 797 F Fleet","unit":"017-258","alias":"","serial":"LTZ00296","model":"797F","panel":"210","det":"QIR","cnt":2,"note":"Autonomous Tie-in"},{"fleet":"CAT 797 F Fleet","unit":"017-259","alias":"","serial":"LTZ00297","model":"797F","panel":"210","det":"QIR","cnt":2,"note":"Autonomous Tie-in"},{"fleet":"CAT 797 F Fleet","unit":"017-260","alias":"","serial":"LTZ00298","model":"797F","panel":"210","det":"QIR","cnt":2,"note":"Autonomous Tie-in"},{"fleet":"CAT 797 F Fleet","unit":"017-261","alias":"","serial":"LTZ00311","model":"797F","panel":"210","det":"QIR","cnt":2,"note":"Autonomous Tie-in"},{"fleet":"CAT 797 F Fleet","unit":"017-262","alias":"","serial":"LTZ00314","model":"797F","panel":"210","det":"QIR","cnt":2,"note":"Autonomous Ready"},{"fleet":"CAT 797 F Fleet","unit":"017-263","alias":"","serial":"LTZ00319","model":"797F","panel":"210","det":"QIR","cnt":2,"note":"Autonomous Ready"},{"fleet":"CAT 797 F Fleet","unit":"017-264","alias":"","serial":"LTZ00320","model":"797F","panel":"210","det":"QIR","cnt":2,"note":"Autonomous Ready"},{"fleet":"CAT 797 F Fleet","unit":"017-265","alias":"","serial":"LTZ00325","model":"797F","panel":"210","det":"QIR","cnt":2,"note":"Autonomous Ready"},{"fleet":"CAT 797 F Fleet","unit":"017-266","alias":"","serial":"LTZ00326","model":"797F","panel":"210","det":"QIR","cnt":2,"note":"Autonomous Ready"},{"fleet":"CAT 797 F Fleet","unit":"017-271","alias":"","serial":"LTZ00321","model":"797F","panel":"210","det":"QIR","cnt":2,"note":"Autonomous Ready"},{"fleet":"CAT 797 F Fleet","unit":"017-272","alias":"","serial":"LTZ00324","model":"797F","panel":"210","det":"QIR","cnt":2,"note":"Autonomous Ready"},{"fleet":"CAT 797 F Fleet","unit":"017-273","alias":"","serial":"LTZ00327","model":"797F","panel":"210","det":"QIR","cnt":2,"note":"Autonomous Ready"},{"fleet":"CAT 797 F Fleet","unit":"017-274","alias":"","serial":"LTZ00328","model":"797F","panel":"210","det":"QIR","cnt":2,"note":"Autonomous Ready"},{"fleet":"CAT 797 F Fleet","unit":"017-275","alias":"","serial":"LTZ00329","model":"797F","panel":"210","det":"QIR","cnt":2,"note":"Autonomous Ready"}];
+
+  var PAGE = 30;                      // cards shown before "Show more"
+  var $q = document.getElementById('fs-q');
+  var $out = document.getElementById('fs-out');
+  var $count = document.getElementById('fs-count');
+  var $clear = document.getElementById('fs-clear');
+
+  /* ---------- precompute search keys ---------- */
+  UNITS.forEach(function (u, i) {
+    var m = u.unit.match(/^0*(\d+)-(\d+)$/);
+    u._i = i;
+    u._key = m ? m[1] + m[2] : u.unit.replace(/\D/g, '');   // "017-204" and "17-204" -> "17204"
+    u._serial = u.serial.toUpperCase();
+    u._serialDigits = u.serial.replace(/\D/g, '');
+    u._model = u.model.toUpperCase();
+    u._alias = u.alias.toUpperCase();
+    u._note = u.note.toUpperCase();
+  });
+
+  /* ---------- scoring ---------- */
+  function scoreToken(u, T) {
+    var best = 0, s;
+    function take(v) { if (v > best) best = v; }
+
+    if (/^[\d-]+$/.test(T)) {                         // numeric: 204 / 17-204 / 017-204
+      if (T.indexOf('-') > -1) {
+        var p = T.split('-').filter(Boolean);
+        var q = (p[0] || '').replace(/^0+/, '') + p.slice(1).join('');
+        if (q) {
+          if (u._key === q) take(100);
+          else if (u._key.indexOf(q) === 0) take(70);
+        }
+      } else {
+        if (u._key === T) take(100);
+        else if (u._key.slice(-T.length) === T) take(80);       // 204 -> 17204
+        else if (u._key.indexOf(T) === 0) take(60);
+        else if (T.length >= 2 && u._key.indexOf(T) > -1) take(40);
+        if (T.length >= 4 && u._serialDigits.indexOf(T) > -1) take(30);
+      }
+      if (T.length >= 3 && u._model.indexOf(T) > -1) take(20);   // 797 -> every 797
+    } else {                                           // letters: LTZ00204 / 797F / QIR / C7
+      if (u._alias && u._alias === T) take(100);
+      if (u._serial.indexOf(T) === 0) take(90);
+      else if (T.length >= 3 && u._serial.indexOf(T) > -1) take(60);
+      if (T.length >= 3 && u._model.indexOf(T) > -1) take(50);
+      if (T === 'IR'  && u.det === 'IR')   take(50);
+      if (T === 'QIR' && u.det === 'QIR')  take(50);
+      if (T === 'NONE' && u.det === 'NONE') take(50);
+      if (T === 'SCN' && u.panel === 'SCN') take(50);
+      if (T.length >= 3 && u._note.indexOf(T) > -1) take(20);
+    }
+    return best;
+  }
+
+  function search(raw) {
+    var tokens = raw.toUpperCase().split(/[\s,]+/).filter(Boolean);
+    if (!tokens.length) return { tokens: tokens, hits: [] };
+    var hits = [];
+    UNITS.forEach(function (u) {
+      var total = 0;
+      for (var i = 0; i < tokens.length; i++) {
+        var s = scoreToken(u, tokens[i]);
+        if (!s) return;
+        total += s;
+      }
+      hits.push({ u: u, score: total });
+    });
+    hits.sort(function (a, b) { return b.score - a.score || a.u._i - b.u._i; });
+    return { tokens: tokens, hits: hits.map(function (h) { return h.u; }) };
+  }
+
+  /* ---------- DOM helpers ---------- */
+  function el(tag, cls, text) {
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text != null) n.textContent = text;
+    return n;
+  }
+
+  // text with the typed tokens highlighted (safe: built from text nodes only)
+  function marked(text, tokens) {
+    var frag = document.createDocumentFragment();
+    var up = text.toUpperCase(), flags = new Array(text.length), i, j;
+    tokens.forEach(function (t) {
+      if (t.length < 2) return;
+      var from = 0, at;
+      while ((at = up.indexOf(t, from)) > -1) {
+        for (j = at; j < at + t.length; j++) flags[j] = true;
+        from = at + t.length;
+      }
+    });
+    i = 0;
+    while (i < text.length) {
+      j = i;
+      while (j < text.length && !!flags[j] === !!flags[i]) j++;
+      var piece = text.slice(i, j);
+      if (flags[i]) { var m = document.createElement('mark'); m.textContent = piece; frag.appendChild(m); }
+      else frag.appendChild(document.createTextNode(piece));
+      i = j;
+    }
+    return frag;
+  }
+
+  function badge(u) {
+    var b = el('div', 'fs-badge');
+    b.appendChild(el('div', 'cap', 'Detector'));
+    if (u.det === 'IR' || u.det === 'QIR') {
+      b.classList.add(u.det === 'IR' ? 'ir' : 'qir');
+      b.appendChild(el('div', 'big', u.det));
+      if (u.cnt) b.appendChild(el('div', 'sub', '× ' + u.cnt));
+    } else if (u.det === 'NONE') {
+      b.classList.add('none');
+      b.appendChild(el('div', 'big', 'NONE'));
+      b.appendChild(el('div', 'sub', 'per list'));
+    } else {
+      b.classList.add('na');
+      b.appendChild(el('div', 'big', '—'));
+      b.appendChild(el('div', 'sub', 'not listed'));
+    }
+    return b;
+  }
+
+  function card(u, tokens) {
+    var c = el('article', 'fs-card');
+
+    var row = el('div', 'fs-row1');
+    var left = el('div');
+    var h = el('h2', 'fs-unit');
+    h.appendChild(marked(u.unit, tokens));
+    if (u.alias) {
+      h.appendChild(document.createTextNode(' '));
+      var a = el('span', 'fs-alias');
+      a.appendChild(marked('/ ' + u.alias, tokens));
+      h.appendChild(a);
+    }
+    left.appendChild(h);
+
+    var meta = el('p', 'fs-meta');
+    var mb = el('b'); mb.appendChild(marked(u.model, tokens));
+    meta.appendChild(mb);
+    meta.appendChild(document.createTextNode(' · Serial '));
+    meta.appendChild(marked(u.serial, tokens));
+    left.appendChild(meta);
+
+    row.appendChild(left);
+    row.appendChild(badge(u));
+    c.appendChild(row);
+
+    var kv = el('p', 'fs-kv');
+    kv.appendChild(el('span', null, 'Panel'));
+    kv.appendChild(el('b', null, u.panel || '—'));
+    c.appendChild(kv);
+
+    if (u.note) c.appendChild(el('p', /^no\b/i.test(u.note) ? 'fs-note warn' : 'fs-note', u.note));
+    return c;
+  }
+
+  /* ---------- views ---------- */
+  function showHint(message) {
+    $out.textContent = '';
+    var box = el('section', 'fs-hint');
+    box.appendChild(el('p', null, message));
+
+    var list = el('ul', 'fs-chips');
+    ['17-204', '224', 'LTZ00203', 'C7', '797B', 'QIR'].forEach(function (ex) {
+      var li = el('li');
+      var b = el('button', 'fs-chip', ex);
+      b.type = 'button';
+      b.addEventListener('click', function () { $q.value = ex; run(); $q.blur(); window.scrollTo(0, 0); });
+      li.appendChild(b); list.appendChild(li);
+    });
+    box.appendChild(list);
+
+    var stats = el('dl', 'fs-stats');
+    function countModel(prefix) {
+      return UNITS.filter(function (u) { return u._model.indexOf(prefix) === 0; }).length;
+    }
+    [['797F', countModel('797F')], ['797B', countModel('797B')], ['793', countModel('793')]].forEach(function (g) {
+      var d = el('div', 'fs-stat');
+      d.appendChild(el('dt', null, g[0]));
+      d.appendChild(el('dd', null, String(g[1])));
+      stats.appendChild(d);
+    });
+    box.appendChild(stats);
+    $out.appendChild(box);
+  }
+
+  function showResults(res, limit) {
+    $out.textContent = '';
+    var shown = res.hits.slice(0, limit);
+    shown.forEach(function (u) { $out.appendChild(card(u, res.tokens)); });
+    if (res.hits.length > limit) {
+      var more = el('button', 'fs-more', 'Show ' + Math.min(PAGE, res.hits.length - limit) + ' more  (' + (res.hits.length - limit) + ' left)');
+      more.type = 'button';
+      more.addEventListener('click', function () { showResults(res, limit + PAGE); });
+      $out.appendChild(more);
+    }
+  }
+
+  function run() {
+    var raw = $q.value.trim();
+    $clear.classList.toggle('on', raw.length > 0);
+
+    if (!raw) { $count.textContent = ''; showHint('Type a unit number, serial or model.'); return; }
+    if (raw.replace(/[\s,]/g, '').length < 2) { $count.textContent = ''; showHint('Keep typing — at least 2 characters.'); return; }
+
+    var res = search(raw);
+    if (!res.hits.length) {
+      $count.textContent = 'No matches';
+      $out.textContent = '';
+      var e = el('div', 'fs-empty');
+      e.appendChild(document.createTextNode('Nothing found for '));
+      e.appendChild(el('b', null, '“' + raw + '”'));
+      e.appendChild(document.createTextNode('. Try just the unit number, e.g. 204 or 17-204.'));
+      $out.appendChild(e);
+      return;
+    }
+    $count.textContent = res.hits.length === 1 ? '1 match' : res.hits.length + ' matches';
+    showResults(res, PAGE);
+  }
+
+  /* ---------- wiring ---------- */
+  document.getElementById('fs-total').textContent = UNITS.length + ' units';
+  $q.addEventListener('input', run);
+  $q.addEventListener('keydown', function (e) { if (e.key === 'Enter') $q.blur(); });   // hide the keyboard, show results
+  $clear.addEventListener('click', function () { $q.value = ''; run(); $q.focus(); });
+
+  var preset = new URLSearchParams(location.search).get('q');   // …/lookup.html?q=17-204
+  if (preset) $q.value = preset;
+  run();
+
+  window.FSLookup = { units: UNITS, search: search };
+})();
+</script>
+</body>
+</html>
