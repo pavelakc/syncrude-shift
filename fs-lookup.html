@@ -117,7 +117,28 @@
   .fs-clear:focus-visible { outline: 3px solid var(--ring); }
 
   /* ---------- status line ---------- */
-  .fs-count { margin: 4px 2px 10px; font-size: 14px; font-weight: 600; color: var(--ink3); min-height: 20px; }
+  .fs-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 4px 2px 10px; min-height: 44px; }
+  .fs-count { margin: 0; font-size: 14px; font-weight: 600; color: var(--ink3); min-height: 20px; }
+
+  .fs-share {
+    flex: none; display: inline-flex; align-items: center; gap: 8px;
+    min-height: 44px; padding: 0 16px;
+    font: inherit; font-size: 16px; font-weight: 700; color: var(--ink);
+    background: var(--surface); border: 1.5px solid var(--line); border-radius: 999px; cursor: pointer;
+  }
+  .fs-share[hidden] { display: none; }
+  .fs-share svg { width: 18px; height: 18px; flex: none; }
+  .fs-share:active { background: var(--line); }
+  .fs-share:focus-visible { outline: 3px solid var(--ring); outline-offset: 1px; }
+
+  .fs-toast {
+    position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+    max-width: calc(100% - 32px); padding: 12px 18px;
+    font-size: 16px; font-weight: 700; text-align: center;
+    color: var(--bg); background: var(--ink); border-radius: 999px;
+    opacity: 0; pointer-events: none; transform: translate(-50%, 8px);
+  }
+  .fs-toast.on { opacity: 1; transform: translate(-50%, 0); }
 
   /* ---------- empty / hint state ---------- */
   .fs-hint { padding: 6px 2px 0; }
@@ -161,7 +182,8 @@
   .fs-badge.none { color: var(--none); background: var(--none-bg); }
   .fs-badge.na   { color: var(--na);   background: var(--na-bg); }
 
-  .fs-kv { display: flex; gap: 8px; margin: 12px 0 0; font-size: 16px; }
+  .fs-actions { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 12px 0 0; }
+  .fs-kv { display: flex; gap: 8px; margin: 0; font-size: 16px; }
   .fs-kv span { color: var(--ink3); }
   .fs-kv b { font-weight: 800; }
 
@@ -183,7 +205,8 @@
   .fs-foot { margin: 22px 2px 0; font-size: 13px; color: var(--ink3); }
 
   @media (prefers-reduced-motion: no-preference) {
-    .fs-chip, .fs-more { transition: background 0.12s; }
+    .fs-chip, .fs-more, .fs-share { transition: background 0.12s; }
+    .fs-toast { transition: opacity 0.18s, transform 0.18s; }
   }
 </style>
 </head>
@@ -201,10 +224,17 @@
     </div>
   </header>
 
-  <div class="fs-count" id="fs-count" role="status" aria-live="polite"></div>
+  <div class="fs-bar">
+    <div class="fs-count" id="fs-count" role="status" aria-live="polite"></div>
+    <button class="fs-share" id="fs-sharelist" type="button" hidden>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M12 3 8 7M12 3l4 4M5 11v8a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-8"/></svg>
+      <span>Share list</span>
+    </button>
+  </div>
   <main id="fs-out"></main>
+  <div class="fs-toast" id="fs-toast" role="status" aria-live="polite"></div>
 
-  <p class="fs-foot">Source: ML_Trucks_FS_info.xlsx · works offline</p>
+  <p class="fs-foot">Source: M.L. Trucks F/S info printout · works offline</p>
 </div>
 
 <script>
@@ -212,18 +242,23 @@
   'use strict';
 
   /* ------------------------------------------------------------------
-     DATA — generated from ML_Trucks_FS_info.xlsx
+     DATA — M.L. Trucks F/S info
      det: "IR" | "QIR" | "NONE" | ""  ("" = not listed in the sheet, 793 fleet)
      cnt: number of detectors from the "YES n" cell
      To update: replace this array, nothing else needs to change.
   ------------------------------------------------------------------ */
-  var UNITS = [{"fleet":"793 Fleet B / D","unit":"17-061","alias":"","serial":"1HL00026","model":"793B Water Truck","panel":"SCN","det":"","cnt":null,"note":""},{"fleet":"793 Fleet B / D","unit":"17-065","alias":"","serial":"1HL00102","model":"793B Water Truck","panel":"SCN","det":"","cnt":null,"note":""},{"fleet":"793 Fleet B / D","unit":"17-070","alias":"","serial":"1HL00115","model":"793B Tow Haul","panel":"SCN","det":"","cnt":null,"note":""},{"fleet":"793 Fleet B / D","unit":"17-170","alias":"","serial":"FDB01329","model":"793D","panel":"SCN","det":"","cnt":null,"note":""},{"fleet":"793 Fleet B / D","unit":"17-171","alias":"","serial":"FDB01331","model":"793D","panel":"SCN","det":"","cnt":null,"note":""},{"fleet":"793 Fleet B / D","unit":"17-172","alias":"","serial":"FDB01334","model":"793D","panel":"SCN","det":"","cnt":null,"note":""},{"fleet":"793 Fleet B / D","unit":"17-173","alias":"","serial":"FDB01339","model":"793D","panel":"SCN","det":"","cnt":null,"note":""},{"fleet":"797 B Fleet","unit":"17-112","alias":"","serial":"JSM00217","model":"797B","panel":"SCN","det":"IR","cnt":2,"note":""},{"fleet":"797 B Fleet","unit":"17-113","alias":"","serial":"JSM00219","model":"797B","panel":"SCN","det":"IR","cnt":2,"note":""},{"fleet":"797 B Fleet","unit":"17-114","alias":"","serial":"JSM00389","model":"797B","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"797 B Fleet","unit":"17-115","alias":"","serial":"JSM00400","model":"797B","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"797 B Fleet","unit":"17-116","alias":"","serial":"JSM00401","model":"797B","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"797 B Fleet","unit":"17-117","alias":"","serial":"JSM00402","model":"797B","panel":"SCN","det":"IR","cnt":2,"note":""},{"fleet":"797 B Fleet","unit":"17-118","alias":"","serial":"JSM00407","model":"797B","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"797 B Fleet","unit":"17-119","alias":"","serial":"JSM00412","model":"797B","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"797 B Fleet","unit":"17-120","alias":"","serial":"JSM00413","model":"797B","panel":"SCN","det":"IR","cnt":2,"note":""},{"fleet":"797 B Fleet","unit":"17-121","alias":"","serial":"JSM00434","model":"797B","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"797 B Fleet","unit":"17-122","alias":"","serial":"JSM00435","model":"797B","panel":"SCN","det":"IR","cnt":2,"note":""},{"fleet":"797 B Fleet","unit":"17-123","alias":"","serial":"JSM00395","model":"797B","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"797 B Fleet","unit":"17-124","alias":"","serial":"JSM00398","model":"797B","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"797 B Fleet","unit":"17-125","alias":"","serial":"JSM00399","model":"797B","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"797 B Fleet","unit":"17-126","alias":"","serial":"JSM00222","model":"797B","panel":"SCN","det":"IR","cnt":2,"note":""},{"fleet":"797 B Fleet","unit":"17-127","alias":"","serial":"JSM00223","model":"797B","panel":"SCN","det":"IR","cnt":2,"note":""},{"fleet":"797 B Fleet","unit":"17-157","alias":"","serial":"JSM00236","model":"797B from Suncor","panel":"SCN","det":"NONE","cnt":null,"note":"No Extd. Discharge or Under Cab Nozzle or cameras"},{"fleet":"797 B Fleet","unit":"17-158","alias":"","serial":"JSM00237","model":"797B from Suncor","panel":"SCN","det":"NONE","cnt":null,"note":"No Extd. Discharge or Under Cab Nozzle or cameras"},{"fleet":"797 B Fleet","unit":"17-159","alias":"","serial":"JSM00238","model":"797B from Suncor","panel":"SCN","det":"NONE","cnt":null,"note":"No Extd. Discharge or Under Cab Nozzle or cameras"},{"fleet":"797 B Fleet","unit":"017-160","alias":"","serial":"JSM00450","model":"797B","panel":"210","det":"QIR","cnt":2,"note":""},{"fleet":"797 B Fleet","unit":"017-161","alias":"","serial":"JSM00451","model":"797B","panel":"210","det":"QIR","cnt":2,"note":""},{"fleet":"797 B Fleet","unit":"017-162","alias":"","serial":"JSM00453","model":"797B","panel":"210","det":"QIR","cnt":2,"note":""},{"fleet":"797 B Fleet","unit":"017-163","alias":"","serial":"JSM00472","model":"797B","panel":"210","det":"QIR","cnt":2,"note":""},{"fleet":"797 B Fleet","unit":"017-164","alias":"","serial":"JSM00476","model":"797B","panel":"210","det":"QIR","cnt":2,"note":""},{"fleet":"797 B Fleet","unit":"017-546","alias":"","serial":"JSM00377","model":"797B","panel":"SCN","det":"IR","cnt":2,"note":""},{"fleet":"797 B Fleet","unit":"017-547","alias":"","serial":"JSM00375","model":"797B","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"797 B Fleet","unit":"017-548","alias":"","serial":"JSM00376","model":"797B","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"797 B Fleet","unit":"017-551","alias":"","serial":"JSM00382","model":"797B","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-204","alias":"","serial":"LTZ00179","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-205","alias":"","serial":"LTZ00180","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-206","alias":"","serial":"LTZ00181","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-207","alias":"","serial":"LTZ00182","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-208","alias":"","serial":"LTZ00183","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-209","alias":"","serial":"LTZ00184","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-210","alias":"","serial":"LTZ00185","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-211","alias":"","serial":"LTZ00186","model":"797F","panel":"210","det":"IR","cnt":2,"note":"Autonomous Tie-in"},{"fleet":"CAT 797 F Fleet","unit":"017-212","alias":"","serial":"LTZ00187","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-213","alias":"","serial":"LTZ00188","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-214","alias":"","serial":"LTZ00189","model":"797F","panel":"210","det":"QIR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-215","alias":"","serial":"LTZ00190","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-216","alias":"","serial":"LTZ00191","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-217","alias":"","serial":"LTZ00192","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-218","alias":"","serial":"LTZ00193","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-219","alias":"","serial":"LTZ00194","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-220","alias":"","serial":"LTZ00195","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-221","alias":"","serial":"LTZ00196","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-222","alias":"","serial":"LTZ00201","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-223","alias":"","serial":"LTZ00202","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"17-224","alias":"C7","serial":"LTZ00203","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"17-225","alias":"C8","serial":"LTZ00204","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-226","alias":"","serial":"LTZ00225","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-227","alias":"","serial":"LTZ00226","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-228","alias":"","serial":"LTZ00244","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-229","alias":"","serial":"LTZ00245","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-230","alias":"","serial":"LTZ00246","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-231","alias":"","serial":"LTZ00247","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-232","alias":"","serial":"LTZ00249","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-233","alias":"","serial":"LTZ00250","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-234","alias":"","serial":"LTZ00251","model":"797F","panel":"210","det":"IR","cnt":2,"note":"Autonomous Tie-in"},{"fleet":"CAT 797 F Fleet","unit":"017-235","alias":"","serial":"LTZ00252","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-236","alias":"","serial":"LTZ00253","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-237","alias":"","serial":"LTZ00254","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-238","alias":"","serial":"LTZ00255","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-239","alias":"","serial":"LTZ00256","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-240","alias":"","serial":"LTZ00257","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-241","alias":"","serial":"LTZ00258","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-242","alias":"","serial":"LTZ00259","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-243","alias":"","serial":"LTZ00260","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-244","alias":"","serial":"LTZ00261","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-245","alias":"","serial":"LTZ00262","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-246","alias":"","serial":"LTZ00270","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-247","alias":"","serial":"LTZ00280","model":"797F","panel":"210","det":"QIR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-248","alias":"","serial":"LTZ00376","model":"797F","panel":"210","det":"QIR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-249","alias":"","serial":"LTZ00282","model":"797F","panel":"210","det":"QIR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-250","alias":"","serial":"LTZ00284","model":"797F","panel":"210","det":"QIR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-251","alias":"","serial":"LTZ00285","model":"797F","panel":"210","det":"QIR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-252","alias":"","serial":"LTZ00286","model":"797F","panel":"210","det":"QIR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-253","alias":"","serial":"LTZ00288","model":"797F","panel":"210","det":"QIR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-254","alias":"","serial":"LTZ00289","model":"797F","panel":"210","det":"QIR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-255","alias":"","serial":"LTZ00292","model":"797F","panel":"210","det":"QIR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-256","alias":"","serial":"LTZ00294","model":"797F","panel":"210","det":"QIR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-257","alias":"","serial":"LTZ00295","model":"797F","panel":"210","det":"QIR","cnt":2,"note":"Autonomous Tie-in"},{"fleet":"CAT 797 F Fleet","unit":"017-258","alias":"","serial":"LTZ00296","model":"797F","panel":"210","det":"QIR","cnt":2,"note":"Autonomous Tie-in"},{"fleet":"CAT 797 F Fleet","unit":"017-259","alias":"","serial":"LTZ00297","model":"797F","panel":"210","det":"QIR","cnt":2,"note":"Autonomous Tie-in"},{"fleet":"CAT 797 F Fleet","unit":"017-260","alias":"","serial":"LTZ00298","model":"797F","panel":"210","det":"QIR","cnt":2,"note":"Autonomous Tie-in"},{"fleet":"CAT 797 F Fleet","unit":"017-261","alias":"","serial":"LTZ00311","model":"797F","panel":"210","det":"QIR","cnt":2,"note":"Autonomous Tie-in"},{"fleet":"CAT 797 F Fleet","unit":"017-262","alias":"","serial":"LTZ00314","model":"797F","panel":"210","det":"QIR","cnt":2,"note":"Autonomous Ready"},{"fleet":"CAT 797 F Fleet","unit":"017-263","alias":"","serial":"LTZ00319","model":"797F","panel":"210","det":"QIR","cnt":2,"note":"Autonomous Ready"},{"fleet":"CAT 797 F Fleet","unit":"017-264","alias":"","serial":"LTZ00320","model":"797F","panel":"210","det":"QIR","cnt":2,"note":"Autonomous Ready"},{"fleet":"CAT 797 F Fleet","unit":"017-265","alias":"","serial":"LTZ00325","model":"797F","panel":"210","det":"QIR","cnt":2,"note":"Autonomous Ready"},{"fleet":"CAT 797 F Fleet","unit":"017-266","alias":"","serial":"LTZ00326","model":"797F","panel":"210","det":"QIR","cnt":2,"note":"Autonomous Ready"},{"fleet":"CAT 797 F Fleet","unit":"017-271","alias":"","serial":"LTZ00321","model":"797F","panel":"210","det":"QIR","cnt":2,"note":"Autonomous Ready"},{"fleet":"CAT 797 F Fleet","unit":"017-272","alias":"","serial":"LTZ00324","model":"797F","panel":"210","det":"QIR","cnt":2,"note":"Autonomous Ready"},{"fleet":"CAT 797 F Fleet","unit":"017-273","alias":"","serial":"LTZ00327","model":"797F","panel":"210","det":"QIR","cnt":2,"note":"Autonomous Ready"},{"fleet":"CAT 797 F Fleet","unit":"017-274","alias":"","serial":"LTZ00328","model":"797F","panel":"210","det":"QIR","cnt":2,"note":"Autonomous Ready"},{"fleet":"CAT 797 F Fleet","unit":"017-275","alias":"","serial":"LTZ00329","model":"797F","panel":"210","det":"QIR","cnt":2,"note":"Autonomous Ready"}];
+  var UNITS = [{"fleet":"793 Fleet B / D","unit":"17-061","alias":"","serial":"1HL00026","model":"793B Water Truck","panel":"SCN","det":"","cnt":null,"note":""},{"fleet":"793 Fleet B / D","unit":"17-065","alias":"","serial":"1HL00102","model":"793B Water Truck","panel":"SCN","det":"","cnt":null,"note":""},{"fleet":"793 Fleet B / D","unit":"17-070","alias":"","serial":"1HL00115","model":"793B Tow Haul","panel":"SCN","det":"","cnt":null,"note":""},{"fleet":"793 Fleet B / D","unit":"17-170","alias":"","serial":"FDB01329","model":"793D","panel":"SCN","det":"","cnt":null,"note":""},{"fleet":"793 Fleet B / D","unit":"17-171","alias":"","serial":"FDB01331","model":"793D","panel":"SCN","det":"","cnt":null,"note":""},{"fleet":"793 Fleet B / D","unit":"17-172","alias":"","serial":"FDB01334","model":"793D","panel":"SCN","det":"","cnt":null,"note":""},{"fleet":"793 Fleet B / D","unit":"17-173","alias":"","serial":"FDB01339","model":"793D","panel":"SCN","det":"","cnt":null,"note":""},{"fleet":"797 B Fleet","unit":"17-112","alias":"","serial":"JSM00217","model":"797B","panel":"210","det":"QIR","cnt":2,"note":""},{"fleet":"797 B Fleet","unit":"17-113","alias":"","serial":"JSM00219","model":"797B","panel":"SCN","det":"IR","cnt":2,"note":""},{"fleet":"797 B Fleet","unit":"17-114","alias":"","serial":"JSM00389","model":"797B","panel":"210","det":"QIR","cnt":2,"note":""},{"fleet":"797 B Fleet","unit":"17-115","alias":"","serial":"JSM00400","model":"797B","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"797 B Fleet","unit":"17-116","alias":"","serial":"JSM00401","model":"797B","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"797 B Fleet","unit":"17-117","alias":"","serial":"JSM00402","model":"797B","panel":"SCN","det":"IR","cnt":2,"note":""},{"fleet":"797 B Fleet","unit":"17-118","alias":"","serial":"JSM00407","model":"797B","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"797 B Fleet","unit":"17-119","alias":"","serial":"JSM00412","model":"797B","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"797 B Fleet","unit":"17-120","alias":"","serial":"JSM00413","model":"797B","panel":"SCN","det":"IR","cnt":2,"note":""},{"fleet":"797 B Fleet","unit":"17-121","alias":"","serial":"JSM00434","model":"797B","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"797 B Fleet","unit":"17-122","alias":"","serial":"JSM00435","model":"797B","panel":"SCN","det":"IR","cnt":2,"note":""},{"fleet":"797 B Fleet","unit":"17-123","alias":"","serial":"JSM00395","model":"797B","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"797 B Fleet","unit":"17-124","alias":"","serial":"JSM00398","model":"797B","panel":"210","det":"QIR","cnt":2,"note":""},{"fleet":"797 B Fleet","unit":"17-125","alias":"","serial":"JSM00399","model":"797B","panel":"210","det":"QIR","cnt":2,"note":""},{"fleet":"797 B Fleet","unit":"17-126","alias":"","serial":"JSM00222","model":"797B","panel":"SCN","det":"IR","cnt":2,"note":""},{"fleet":"797 B Fleet","unit":"17-127","alias":"","serial":"JSM00223","model":"797B","panel":"SCN","det":"QIR","cnt":2,"note":""},{"fleet":"797 B Fleet","unit":"17-157","alias":"","serial":"JSM00236","model":"797B from Suncor","panel":"SCN","det":"NONE","cnt":null,"note":"No Extd. Discharge or Under Cab Nozzle or cameras"},{"fleet":"797 B Fleet","unit":"17-158","alias":"","serial":"JSM00237","model":"797B from Suncor","panel":"SCN","det":"NONE","cnt":null,"note":"No Extd. Discharge or Under Cab Nozzle or cameras"},{"fleet":"797 B Fleet","unit":"17-159","alias":"","serial":"JSM00238","model":"797B from Suncor","panel":"SCN","det":"NONE","cnt":null,"note":"No Extd. Discharge or Under Cab Nozzle or cameras"},{"fleet":"797 B Fleet","unit":"017-160","alias":"","serial":"JSM00450","model":"797B","panel":"210","det":"QIR","cnt":2,"note":""},{"fleet":"797 B Fleet","unit":"017-161","alias":"","serial":"JSM00451","model":"797B","panel":"210","det":"QIR","cnt":2,"note":""},{"fleet":"797 B Fleet","unit":"017-162","alias":"","serial":"JSM00453","model":"797B","panel":"210","det":"QIR","cnt":2,"note":""},{"fleet":"797 B Fleet","unit":"017-163","alias":"","serial":"JSM00472","model":"797B","panel":"210","det":"QIR","cnt":2,"note":""},{"fleet":"797 B Fleet","unit":"017-164","alias":"","serial":"JSM00476","model":"797B","panel":"210","det":"QIR","cnt":2,"note":""},{"fleet":"797 B Fleet","unit":"017-546","alias":"","serial":"JSM00377","model":"797B","panel":"SCN","det":"IR","cnt":2,"note":""},{"fleet":"797 B Fleet","unit":"017-547","alias":"","serial":"JSM00375","model":"797B","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"797 B Fleet","unit":"017-548","alias":"","serial":"JSM00376","model":"797B","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"797 B Fleet","unit":"017-551","alias":"","serial":"JSM00382","model":"797B","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-204","alias":"","serial":"LTZ00179","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-205","alias":"","serial":"LTZ00180","model":"797F","panel":"210","det":"QIR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-206","alias":"","serial":"LTZ00181","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-207","alias":"","serial":"LTZ00182","model":"797F","panel":"210","det":"QIR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-208","alias":"","serial":"LTZ00183","model":"797F","panel":"210","det":"QIR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-209","alias":"","serial":"LTZ00184","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-210","alias":"","serial":"LTZ00185","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-211","alias":"","serial":"LTZ00186","model":"797F","panel":"210","det":"IR","cnt":2,"note":"Autonomous Tie-in"},{"fleet":"CAT 797 F Fleet","unit":"017-212","alias":"","serial":"LTZ00187","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-213","alias":"","serial":"LTZ00188","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-214","alias":"","serial":"LTZ00189","model":"797F","panel":"210","det":"QIR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-215","alias":"","serial":"LTZ00190","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-216","alias":"","serial":"LTZ00191","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-217","alias":"","serial":"LTZ00192","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-218","alias":"","serial":"LTZ00193","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-219","alias":"","serial":"LTZ00194","model":"797F","panel":"210","det":"QIR","cnt":2,"note":"Autonomous"},{"fleet":"CAT 797 F Fleet","unit":"017-220","alias":"","serial":"LTZ00195","model":"797F","panel":"210","det":"QIR","cnt":2,"note":"Autonomous"},{"fleet":"CAT 797 F Fleet","unit":"017-221","alias":"","serial":"LTZ00196","model":"797F","panel":"210","det":"QIR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-222","alias":"","serial":"LTZ00201","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-223","alias":"","serial":"LTZ00202","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"17-224","alias":"C7","serial":"LTZ00203","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"17-225","alias":"C8","serial":"LTZ00204","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-226","alias":"","serial":"LTZ00225","model":"797F","panel":"210","det":"IR","cnt":2,"note":"Autonomous"},{"fleet":"CAT 797 F Fleet","unit":"017-227","alias":"","serial":"LTZ00226","model":"797F","panel":"210","det":"QIR","cnt":2,"note":"Autonomous"},{"fleet":"CAT 797 F Fleet","unit":"017-228","alias":"","serial":"LTZ00244","model":"797F","panel":"210","det":"QIR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-229","alias":"","serial":"LTZ00245","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-230","alias":"","serial":"LTZ00246","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-231","alias":"","serial":"LTZ00247","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-232","alias":"","serial":"LTZ00249","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-233","alias":"","serial":"LTZ00250","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-234","alias":"","serial":"LTZ00251","model":"797F","panel":"210","det":"IR","cnt":2,"note":"Autonomous Tie-in"},{"fleet":"CAT 797 F Fleet","unit":"017-235","alias":"","serial":"LTZ00252","model":"797F","panel":"210","det":"IR","cnt":2,"note":"Autonomous"},{"fleet":"CAT 797 F Fleet","unit":"017-236","alias":"","serial":"LTZ00253","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-237","alias":"","serial":"LTZ00254","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-238","alias":"","serial":"LTZ00255","model":"797F","panel":"210","det":"QIR","cnt":2,"note":"Autonomous"},{"fleet":"CAT 797 F Fleet","unit":"017-239","alias":"","serial":"LTZ00256","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-240","alias":"","serial":"LTZ00257","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-241","alias":"","serial":"LTZ00258","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-242","alias":"","serial":"LTZ00259","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-243","alias":"","serial":"LTZ00260","model":"797F","panel":"210","det":"QIR","cnt":2,"note":"Autonomous"},{"fleet":"CAT 797 F Fleet","unit":"017-244","alias":"","serial":"LTZ00261","model":"797F","panel":"210","det":"QIR","cnt":2,"note":"Autonomous"},{"fleet":"CAT 797 F Fleet","unit":"017-245","alias":"","serial":"LTZ00262","model":"797F","panel":"210","det":"QIR","cnt":2,"note":"Autonomous"},{"fleet":"CAT 797 F Fleet","unit":"017-246","alias":"","serial":"LTZ00270","model":"797F","panel":"210","det":"IR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-247","alias":"","serial":"LTZ00280","model":"797F","panel":"210","det":"QIR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-248","alias":"","serial":"LTZ00376","model":"797F","panel":"210","det":"QIR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-249","alias":"","serial":"LTZ00282","model":"797F","panel":"210","det":"QIR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-250","alias":"","serial":"LTZ00284","model":"797F","panel":"210","det":"QIR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-251","alias":"","serial":"LTZ00285","model":"797F","panel":"210","det":"QIR","cnt":2,"note":"Autonomous"},{"fleet":"CAT 797 F Fleet","unit":"017-252","alias":"","serial":"LTZ00286","model":"797F","panel":"210","det":"QIR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-253","alias":"","serial":"LTZ00288","model":"797F","panel":"210","det":"QIR","cnt":2,"note":"Autonomous"},{"fleet":"CAT 797 F Fleet","unit":"017-254","alias":"","serial":"LTZ00289","model":"797F","panel":"210","det":"QIR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-255","alias":"","serial":"LTZ00292","model":"797F","panel":"210","det":"QIR","cnt":2,"note":"Autonomous"},{"fleet":"CAT 797 F Fleet","unit":"017-256","alias":"","serial":"LTZ00294","model":"797F","panel":"210","det":"QIR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-257","alias":"","serial":"LTZ00295","model":"797F","panel":"210","det":"QIR","cnt":2,"note":"Autonomous Tie-in"},{"fleet":"CAT 797 F Fleet","unit":"017-258","alias":"","serial":"LTZ00296","model":"797F","panel":"210","det":"QIR","cnt":2,"note":""},{"fleet":"CAT 797 F Fleet","unit":"017-259","alias":"","serial":"LTZ00297","model":"797F","panel":"210","det":"QIR","cnt":2,"note":"Autonomous Tie-in"},{"fleet":"CAT 797 F Fleet","unit":"017-260","alias":"","serial":"LTZ00298","model":"797F","panel":"210","det":"QIR","cnt":2,"note":"Autonomous Tie-in"},{"fleet":"CAT 797 F Fleet","unit":"017-261","alias":"","serial":"LTZ00311","model":"797F","panel":"210","det":"QIR","cnt":2,"note":"Autonomous Tie-in"},{"fleet":"CAT 797 F Fleet","unit":"017-262","alias":"","serial":"LTZ00314","model":"797F","panel":"210","det":"QIR","cnt":2,"note":"Autonomous Ready"},{"fleet":"CAT 797 F Fleet","unit":"017-263","alias":"","serial":"LTZ00319","model":"797F","panel":"210","det":"QIR","cnt":2,"note":"Autonomous Ready"},{"fleet":"CAT 797 F Fleet","unit":"017-264","alias":"","serial":"LTZ00320","model":"797F","panel":"210","det":"QIR","cnt":2,"note":"Autonomous Ready"},{"fleet":"CAT 797 F Fleet","unit":"017-265","alias":"","serial":"LTZ00325","model":"797F","panel":"210","det":"QIR","cnt":2,"note":"Autonomous Ready"},{"fleet":"CAT 797 F Fleet","unit":"017-266","alias":"","serial":"LTZ00326","model":"797F","panel":"210","det":"QIR","cnt":2,"note":"Autonomous Ready"},{"fleet":"CAT 797 F Fleet","unit":"017-271","alias":"","serial":"LTZ00321","model":"797F","panel":"210","det":"QIR","cnt":2,"note":"Autonomous Ready"},{"fleet":"CAT 797 F Fleet","unit":"017-272","alias":"","serial":"LTZ00324","model":"797F","panel":"210","det":"QIR","cnt":2,"note":"Autonomous Ready"},{"fleet":"CAT 797 F Fleet","unit":"017-273","alias":"","serial":"LTZ00327","model":"797F","panel":"210","det":"QIR","cnt":2,"note":"Autonomous Ready"},{"fleet":"CAT 797 F Fleet","unit":"017-274","alias":"","serial":"LTZ00328","model":"797F","panel":"210","det":"QIR","cnt":2,"note":"Autonomous Ready"},{"fleet":"CAT 797 F Fleet","unit":"017-275","alias":"","serial":"LTZ00329","model":"797F","panel":"210","det":"QIR","cnt":2,"note":"Autonomous Ready"}];
 
   var PAGE = 30;                      // cards shown before "Show more"
+  var SHARE_LINK = true;              // add a link back to this page in shared text (build flag)
+  var LIST_MAX = 40;                  // units listed in a shared list
   var $q = document.getElementById('fs-q');
   var $out = document.getElementById('fs-out');
   var $count = document.getElementById('fs-count');
   var $clear = document.getElementById('fs-clear');
+  var $shareList = document.getElementById('fs-sharelist');
+  var $toast = document.getElementById('fs-toast');
+  var lastRes = null;
 
   /* ---------- precompute search keys ---------- */
   UNITS.forEach(function (u, i) {
@@ -366,13 +401,104 @@
     row.appendChild(badge(u));
     c.appendChild(row);
 
+    var act = el('div', 'fs-actions');
     var kv = el('p', 'fs-kv');
     kv.appendChild(el('span', null, 'Panel'));
     kv.appendChild(el('b', null, u.panel || '—'));
-    c.appendChild(kv);
+    act.appendChild(kv);
+    var sb = el('button', 'fs-share');
+    sb.type = 'button';
+    sb.setAttribute('aria-label', 'Share ' + unitName(u));
+    sb.appendChild(shareIcon());
+    sb.appendChild(el('span', null, 'Share'));
+    sb.addEventListener('click', function () { send('ML Trucks FS: ' + u.unit, unitText(u)); });
+    act.appendChild(sb);
+    c.appendChild(act);
 
     if (u.note) c.appendChild(el('p', /^no\b/i.test(u.note) ? 'fs-note warn' : 'fs-note', u.note));
     return c;
+  }
+
+  /* ---------- sharing ---------- */
+  function detText(u) {
+    if (u.det === 'IR' || u.det === 'QIR') return u.det + (u.cnt ? ' x' + u.cnt : '');
+    if (u.det === 'NONE') return 'NONE (per list)';
+    return 'not listed';
+  }
+  function unitName(u) { return u.unit + (u.alias ? ' / ' + u.alias : ''); }
+
+  // link back to this page, only when it is served from the web
+  function pageLink(q) {
+    if (!SHARE_LINK || !/^https?:$/.test(location.protocol)) return '';
+    return location.origin + location.pathname + '?q=' + encodeURIComponent(q);
+  }
+  function unitText(u) {
+    var lines = ['ML Trucks FS: ' + unitName(u), u.model + ' | Serial ' + u.serial, 'Detector: ' + detText(u), 'Panel: ' + (u.panel || 'n/a')];
+    if (u.note) lines.push('Note: ' + u.note);
+    var link = pageLink(u.unit);
+    if (link) lines.push(link);
+    return lines.join('\n');
+  }
+  function listText(raw, hits) {
+    var lines = ['ML Trucks FS: "' + raw + '" - ' + hits.length + ' units'];
+    hits.slice(0, LIST_MAX).forEach(function (u) {
+      lines.push(unitName(u) + ' | ' + u.model + ' | ' + detText(u) + ' | Panel ' + (u.panel || 'n/a'));
+    });
+    if (hits.length > LIST_MAX) lines.push('+' + (hits.length - LIST_MAX) + ' more');
+    var link = pageLink(raw);
+    if (link) lines.push(link);
+    return lines.join('\n');
+  }
+
+  var toastTimer;
+  function toast(msg) {
+    $toast.textContent = msg;
+    $toast.classList.add('on');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { $toast.classList.remove('on'); }, 2200);
+  }
+  function copyText(text) {
+    function legacy() {
+      var ta = document.createElement('textarea'), ok = false;
+      ta.value = text; ta.setAttribute('readonly', '');
+      ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0;font-size:16px';
+      document.body.appendChild(ta);
+      ta.focus(); ta.select(); ta.setSelectionRange(0, text.length);
+      try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+      document.body.removeChild(ta);
+      return ok;
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      return navigator.clipboard.writeText(text).then(function () { return true; }, function () { return legacy(); });
+    }
+    return Promise.resolve(legacy());
+  }
+  function copyAndTell(text) {
+    copyText(text).then(function (ok) { toast(ok ? 'Copied to clipboard' : 'Could not copy'); });
+  }
+  // phone: system share sheet (Messages, WhatsApp, Mail...). Elsewhere: copy to clipboard.
+  function send(title, text) {
+    if (navigator.share) {
+      var p;
+      try { p = navigator.share({ title: title, text: text }); } catch (e) { copyAndTell(text); return; }
+      if (p && p.catch) p.catch(function (err) {
+        if (err && err.name === 'AbortError') return;       // person closed the sheet
+        copyAndTell(text);
+      });
+      return;
+    }
+    copyAndTell(text);
+  }
+  function shareIcon() {
+    var ns = 'http://www.w3.org/2000/svg';
+    var svg = document.createElementNS(ns, 'svg');
+    svg.setAttribute('viewBox', '0 0 24 24'); svg.setAttribute('fill', 'none'); svg.setAttribute('stroke', 'currentColor');
+    svg.setAttribute('stroke-width', '2'); svg.setAttribute('stroke-linecap', 'round'); svg.setAttribute('stroke-linejoin', 'round');
+    svg.setAttribute('aria-hidden', 'true');
+    var path = document.createElementNS(ns, 'path');
+    path.setAttribute('d', 'M12 3v12M12 3 8 7M12 3l4 4M5 11v8a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-8');
+    svg.appendChild(path);
+    return svg;
   }
 
   /* ---------- views ---------- */
@@ -420,6 +546,8 @@
   function run() {
     var raw = $q.value.trim();
     $clear.classList.toggle('on', raw.length > 0);
+    $shareList.hidden = true;
+    lastRes = null;
 
     if (!raw) { $count.textContent = ''; showHint('Type a unit number, serial or model.'); return; }
     if (raw.replace(/[\s,]/g, '').length < 2) { $count.textContent = ''; showHint('Keep typing — at least 2 characters.'); return; }
@@ -436,6 +564,8 @@
       return;
     }
     $count.textContent = res.hits.length === 1 ? '1 match' : res.hits.length + ' matches';
+    lastRes = { raw: raw, hits: res.hits };
+    $shareList.hidden = res.hits.length < 2;
     showResults(res, PAGE);
   }
 
@@ -444,8 +574,11 @@
   $q.addEventListener('input', run);
   $q.addEventListener('keydown', function (e) { if (e.key === 'Enter') $q.blur(); });   // hide the keyboard, show results
   $clear.addEventListener('click', function () { $q.value = ''; run(); $q.focus(); });
+  $shareList.addEventListener('click', function () {
+    if (lastRes) send('ML Trucks FS: ' + lastRes.raw, listText(lastRes.raw, lastRes.hits));
+  });
 
-  var preset = new URLSearchParams(location.search).get('q');   // …/lookup.html?q=17-204
+  var preset = window.FS_PRESET || new URLSearchParams(location.search).get('q');   // …/lookup.html?q=17-204
   if (preset) $q.value = preset;
   run();
 
